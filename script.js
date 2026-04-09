@@ -39,27 +39,36 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// Contact form handling
+// Contact form handling with enhanced security
 const contactForm = document.getElementById('contact-form');
 contactForm.addEventListener('submit', function(e) {
     e.preventDefault();
     
     // Get form data
     const formData = new FormData(this);
-    const name = formData.get('name');
-    const email = formData.get('email');
-    const message = formData.get('message');
+    const name = formData.get('name').trim();
+    const email = formData.get('email').trim();
+    const message = formData.get('message').trim();
     
-    // Simple validation
-    if (!name || !email || !message) {
-        alert('Please fill in all fields.');
+    // Enhanced validation
+    if (!name || name.length < 2) {
+        alert('Please enter a valid name (at least 2 characters).');
         return;
     }
     
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!email || !isValidEmail(email)) {
         alert('Please enter a valid email address.');
+        return;
+    }
+    
+    if (!message || message.length < 10) {
+        alert('Please enter a message (at least 10 characters).');
+        return;
+    }
+    
+    // Check for potential spam patterns
+    if (containsSpamPatterns(name + ' ' + email + ' ' + message)) {
+        alert('Message appears to contain spam. Please try again.');
         return;
     }
     
@@ -78,6 +87,23 @@ contactForm.addEventListener('submit', function(e) {
         submitBtn.disabled = false;
     }, 1500);
 });
+
+// Enhanced email validation
+function isValidEmail(email) {
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    return emailRegex.test(email) && email.length <= 254;
+}
+
+// Basic spam detection
+function containsSpamPatterns(text) {
+    const spamPatterns = [
+        /viagra/i, /casino/i, /lottery/i, /winner/i,
+        /click here/i, /free money/i, /urgent/i,
+        /http[s]?:\/\/[^\s]+/g // URLs in messages
+    ];
+    
+    return spamPatterns.some(pattern => pattern.test(text));
+}
 
 // Intersection Observer for animations
 const observerOptions = {
